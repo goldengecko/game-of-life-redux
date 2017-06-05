@@ -6,74 +6,37 @@ import 'react-input-range/lib/css/index.css';
 
 import LifeBoard from './LifeBoard';
 
-// The size of history to keep when checking for oscillating loops
-const HISTORY_CHECK_LENGTH = 5;
-
 class App extends Component {
 	
 	constructor(props) {
 		super(props);
-		this.state = {
-			running:false,
-			selection: {},
-			currentGeneration: 0,
-			exitReason: ''
-		};
 
 		this.handleChecked = this.handleChecked.bind(this);
 		this.handleRun = this.handleRun.bind(this);
 		this.randomize = this.randomize.bind(this);
 		this.clearBoard = this.clearBoard.bind(this);
 		this.handleCellClicked = this.handleCellClicked.bind(this);
-		this.nextFrame = this.nextFrame.bind(this);
-		this.countAdjacentCells = this.countAdjacentCells.bind(this);
 	}
 	
 	/**
 	 * Initial setup of the board happens after the component is mounted.
 	 */
-	componentDidMount() {
-		this.randomize();
-	}
+	// componentDidMount() {
+	// 	this.randomize();
+	// }
 	
 	/**
 	 * Initialize the board with randomly selected cells
 	 */
     randomize(event) {
-		let state = {};
-		for (let row = 0 ; row < this.props.rows ; row ++ ) {
-			for (let col = 0 ; col < this.props.columns; col ++ ) {
-				state[[row,col]] = Math.round(Math.random());
-			}
-		};
-
-		this.setState({
-			selection:state,
-			exitReason: '',
-			currentGeneration: 0
-		});
-		
-		if (event) {
-			event.target.blur();
-		}
+		this.props.randomize();
     }
 	
 	/**
 	 * Empty all the cells
 	 */
 	clearBoard(event) {
-		let state = {};
-		for (let row = 0 ; row < this.props.rows ; row ++ ) {
-			for (let col = 0 ; col < this.props.columns; col ++ ) {
-				state[[row,col]] = 0;
-			}
-		};
-
-		this.setState({
-			selection:state,
-			exitReason: '',
-			currentGeneration: 0
-		});
+		this.props.clearBoard();
 	}
 	
 	/**
@@ -92,138 +55,16 @@ class App extends Component {
 	 * Either start or stop the running of the simulation.
 	 */
 	handleRun(event) {
-		const shouldRun = !this.state.running;
-		this.setState({running: shouldRun});
-		
-		// Note that we use shouldRun here rather than reading from the state since state writing can be asynchronous
-		if (shouldRun) {
-			this.stateHistory = [];
-			this.stateHistory.push(JSON.stringify(this.state.selection));
-			this.setState({
-				currentGeneration: this.state.currentGeneration+1,
-				exitReason: ''
-			});
-			
-	        this.animationFrame = requestAnimationFrame(this.nextFrame);
-		} else {
-			cancelAnimationFrame(this.animationFrame);
-		}
+		this.props.toggleRunning();
 	}
-	
-	/**
-	 * Go to the next frame in the animation by sorting out which cells should be born and which should die.
-	 */
-	nextFrame() {
-		let selection = Object.assign({}, this.state.selection);
 		
-		let stateChanged = false;
-		
-		for (let row = 0 ; row < this.props.rows ; row ++ ) {
-			for (let col = 0 ; col < this.props.columns; col ++ ) {
-				let count = this.countAdjacentCells(row, col);
-				
-				// console.log(count + " cells adjacent to " + row + ", " + col + " (currently " + this.state.selection[[row,col]] + ")");
-				
-				// Now see if we want to change the state.
-				if (this.state.selection[[row,col]]) {
-					// It is currently turned on - see whether it has the right number of lives to survive
-					if (!this.props['survival' + count]) {
-						selection[[row,col]] = 0;
-						stateChanged = true;
-						// console.log("Cell died at " + row + ", " + col);
-					} 
-				} else {
-					// Currently not on - see if one should be born here
-					if (this.props['birth' + count]) {
-						selection[[row,col]] = 1;
-						stateChanged = true;
-						// console.log("Cell born at " + row + ", " + col);
-					} 
-				}
-			}
-		};
-		
-		if (stateChanged) {
-			this.setState({selection: selection});
-			
-			// Now check whether we are just oscillating in a repeated loop. 
-			// To do this, we will go back a defined number of generations and see if any of them match our current generation
-			const newState = JSON.stringify(selection);
-			
-			const oldStates = this.stateHistory.slice(-HISTORY_CHECK_LENGTH);
-			
-			for (let thisState of oldStates) {
-				if (newState === thisState) {
-					this.setState({
-						running: false,
-						exitReason: 'Exited because of a loop after ' + this.state.currentGeneration + ' generations.'
-					});
-					return;
-				}
-			}
-
-			// No need to keep endless state history around
-			this.stateHistory = oldStates;
-			this.stateHistory.push(newState);
-			
-			this.setState({currentGeneration: this.state.currentGeneration+1});
-			
-			let speed = 1000 / this.props.fps;
-			setTimeout(() => {
-				if (this.state.running) {
-					this.animationFrame = requestAnimationFrame(this.nextFrame);
-				}
-			}, speed);
-		} else {
-			this.setState({
-				running: false,
-				exitReason: 'Exited in stable state after ' + this.state.currentGeneration + ' generations.'
-			});
-		}
-	}
-	
 	/**
 	 * Called when the user clicks on a cell on the board to toggle it.
 	 */
-	handleCellClicked(row, column) {	  	  
-		let selection = Object.assign({}, this.state.selection);
-
-		selection[[row,column]] = selection[[row,column]] ? 0: 1;
-		this.setState({
-			selection,
-			exitReason: '',
-			currentGeneration: 0
-		});
+	handleCellClicked(row, column) {	
+		this.props.handleCellClicked(row, column);
 	}
-	
-	/**
-	 * Count the number of cells adjacent to the given location which are on. This checks up to 8 cells
-	 * but needs to respect edges too.
-	 */
-    countAdjacentCells(row, col) {
-		if (row < 0 || row > this.props.rows-1 || col < 0 || col > this.props.columns-1) {
-			// TODO: Handle error nicely
-			return 0;
-		}
-		let count = 0;
-		// Previous row
-		if (row - 1 >= 0) {
-			count += (col - 1 < 0) ? 0 : this.state.selection[[row-1,col-1]];
-			count += this.state.selection[[row-1,col]];
-			count += (col + 1 >= this.props.columns) ? 0 : this.state.selection[[row-1,col+1]];
-		}
-		// Current row
-		count += (col - 1 < 0) ? 0 : this.state.selection[[row,col-1]];
-		count += (col + 1 >= this.props.columns) ? 0 : this.state.selection[[row,col+1]];
-		// Next row
-		if (row + 1 < this.props.rows) {
-			count += (col - 1 < 0) ? 0 : this.state.selection[[row+1,col-1]];
-			count += this.state.selection[[row+1,col]];
-			count += (col + 1 >= this.props.columns) ? 0 : this.state.selection[[row+1,col+1]];
-		}
-		return count;
-    };
-	
+		
 	render() {
 		return (
 			<Container fluid>
@@ -286,17 +127,17 @@ class App extends Component {
 							<CardBlock>
 								<Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.clearBoard}>Clear</Button>
 								<Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.randomize}>Randomize</Button>
-								<Button color={this.state.running ? 'danger' : 'success'} className="spaced-buttons" onClick={this.handleRun}>{this.state.running ? 'Stop' : 'Start'}</Button>
+								<Button color={this.props.running ? 'danger' : 'success'} className="spaced-buttons" onClick={this.handleRun}>{this.props.running ? 'Stop' : 'Start'}</Button>
 							</CardBlock>
 							{
 								// This is where the status information is displayed
 							}
 							<CardBlock>
-								{this.state.running &&
-									<Alert>Current generation: {this.state.currentGeneration}</Alert>
+								{this.props.running &&
+									<Alert>Current generation: {this.props.currentGeneration}</Alert>
 								}
-								{!this.state.running && this.state.exitReason &&
-									<Alert>{this.state.exitReason}</Alert>
+								{!this.props.running && this.props.exitReason &&
+									<Alert>{this.props.exitReason}</Alert>
 								}
 							</CardBlock>
 						</Card>
@@ -307,7 +148,7 @@ class App extends Component {
 					<Col  md="8" sm="12" className="spaced">
 						<Card>
 							<CardBlock>
-								<LifeBoard rows={this.props.rows} columns={this.props.columns} selection={this.state.selection} handleCellClicked={this.handleCellClicked}/>
+								<LifeBoard rows={this.props.rows} columns={this.props.columns} selection={this.props.selection} handleCellClicked={this.handleCellClicked}/>
 							</CardBlock>
 						</Card>
 					</Col>

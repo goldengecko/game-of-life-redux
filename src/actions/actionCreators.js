@@ -1,5 +1,4 @@
 export function setRowCount(count) {
-	console.log(count);
 	return {
 		type: 'SET_ROWS',
 		count
@@ -29,5 +28,37 @@ export function setFps(fps) {
 	return {
 		type: 'SET_FPS',
 		fps
+	}
+}
+export function randomize() {
+	return {
+		type: 'RANDOMIZE'
+	}
+}
+export function clearBoard() {
+	return {
+		type: 'CLEAR_BOARD'
+	}
+}
+export function toggleRunning() {
+	return {
+		type: 'TOGGLE_RUNNING'
+	}
+}
+
+/**
+ * Go to the next frame in the animation by sorting out which cells should be born and which should die.
+ */
+export function nextFrame() {
+	return {
+		type: 'NEXT_FRAME'
+	}
+}
+
+export function handleCellClicked(row, column) {
+	return {
+		type: 'CELL_CLICKED',
+		row,
+		column
 	}
 }
