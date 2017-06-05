@@ -12,31 +12,6 @@ class App extends Component {
 		super(props);
 
 		this.handleChecked = this.handleChecked.bind(this);
-		this.handleRun = this.handleRun.bind(this);
-		this.randomize = this.randomize.bind(this);
-		this.clearBoard = this.clearBoard.bind(this);
-		this.handleCellClicked = this.handleCellClicked.bind(this);
-	}
-	
-	/**
-	 * Initial setup of the board happens after the component is mounted.
-	 */
-	// componentDidMount() {
-	// 	this.randomize();
-	// }
-	
-	/**
-	 * Initialize the board with randomly selected cells
-	 */
-    randomize(event) {
-		this.props.randomize();
-    }
-	
-	/**
-	 * Empty all the cells
-	 */
-	clearBoard(event) {
-		this.props.clearBoard();
 	}
 	
 	/**
@@ -51,19 +26,6 @@ class App extends Component {
 		}
 	}
 	
-	/**
-	 * Either start or stop the running of the simulation.
-	 */
-	handleRun(event) {
-		this.props.toggleRunning();
-	}
-		
-	/**
-	 * Called when the user clicks on a cell on the board to toggle it.
-	 */
-	handleCellClicked(row, column) {	
-		this.props.handleCellClicked(row, column);
-	}
 		
 	render() {
 		return (
@@ -90,11 +52,11 @@ class App extends Component {
 								<h3>Settings</h3>
 								<FormGroup>
 									<Label for="rows">Number of Rows:</Label>
-									<InputRange id="rows" minValue={5} maxValue={50} value={this.props.rows} onChange={rows => this.props.setRowCount(rows)} onChangeComplete={() => this.randomize()}/>
+									<InputRange id="rows" minValue={5} maxValue={50} value={this.props.rows} onChange={rows => this.props.setRowCount(rows)} onChangeComplete={() => this.props.randomize()}/>
 								</FormGroup>
 								<FormGroup>
 									<Label for="columns">Number of Columns:</Label>
-									<InputRange id="columns" minValue={5} maxValue={50} value={this.props.columns} onChange={columns => this.props.setColumnCount(columns)} onChangeComplete={() => this.randomize()}/>
+									<InputRange id="columns" minValue={5} maxValue={50} value={this.props.columns} onChange={columns => this.props.setColumnCount(columns)} onChangeComplete={() => this.props.randomize()}/>
 								</FormGroup>
 								<FormGroup check>
 									<Label for="birth">Neighbours required for Birth:</Label>
@@ -125,9 +87,9 @@ class App extends Component {
 								// Control buttons
 							}
 							<CardBlock>
-								<Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.clearBoard}>Clear</Button>
-								<Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.randomize}>Randomize</Button>
-								<Button color={this.props.running ? 'danger' : 'success'} className="spaced-buttons" onClick={this.handleRun}>{this.props.running ? 'Stop' : 'Start'}</Button>
+								<Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.props.clearBoard}>Clear</Button>
+								<Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.props.randomize}>Randomize</Button>
+								<Button color={this.props.running ? 'danger' : 'success'} className="spaced-buttons" onClick={this.props.toggleRunning}>{this.props.running ? 'Stop' : 'Start'}</Button>
 							</CardBlock>
 							{
 								// This is where the status information is displayed
@@ -148,7 +110,7 @@ class App extends Component {
 					<Col  md="8" sm="12" className="spaced">
 						<Card>
 							<CardBlock>
-								<LifeBoard rows={this.props.rows} columns={this.props.columns} selection={this.props.selection} handleCellClicked={this.handleCellClicked}/>
+								<LifeBoard rows={this.props.rows} columns={this.props.columns} selection={this.props.selection} handleCellClicked={this.props.handleCellClicked}/>
 							</CardBlock>
 						</Card>
 					</Col>
