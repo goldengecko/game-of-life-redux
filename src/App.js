@@ -9,7 +9,7 @@ import LifeBoard from './LifeBoard'
 class App extends Component {
   /**
    * Update the state to reflect changes to the birth and survival checkboxes.
-   * The data-rule attribute is used to pass in the birth or survival identifier.
+   * The data-life attribute is used to pass in the birth or survival identifier.
    */
   handleChecked = (event) => {
     if (event.target.getAttribute('data-life') === 'birth') {
@@ -30,7 +30,7 @@ class App extends Component {
           <Col md="4" sm="12" className="spaced">
             <Card>
               <CardImg src={logo} top  className="img-fluid" />
-              <CardBody>
+              <CardBody style={{padding:15}}>
                 <CardTitle>Game of Life</CardTitle>
                 <h3>Instructions</h3>
                 <ul>
@@ -41,7 +41,7 @@ class App extends Component {
                   <li>The number next to the birth/survival checkboxes indicate the number of neighbours required for birth of a new cell or survival of an existing cell.</li>
                 </ul>
               </CardBody>
-              <CardBody>
+              <CardBody style={{padding:15}}>
                 <h3>Settings</h3>
                 <FormGroup>
                   <Label for="rows">Number of Rows:</Label>
@@ -79,7 +79,7 @@ class App extends Component {
               {
                 // Control buttons
               }
-              <CardBody>
+              <CardBody style={{padding:15}}>
                 <Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.props.clearBoard}>Clear</Button>
                 <Button color="secondary" className="spaced-buttons" onMouseDown={e => e.preventDefault()} onClick={this.props.randomize}>Randomize</Button>
                 <Button color={this.props.running ? 'danger' : 'success'} className="spaced-buttons" onClick={this.props.toggleRunning}>{this.props.running ? 'Stop' : 'Start'}</Button>
@@ -87,7 +87,7 @@ class App extends Component {
               {
                 // This is where the status information is displayed
               }
-              <CardBody>
+              <CardBody style={{paddingLeft:15, paddingRight:15}}>
                 {this.props.running &&
                   <Alert>Current generation: {this.props.currentGeneration}</Alert>
                 }
